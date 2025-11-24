@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "178982368859",
+    "project_id": "fito-ce708",
+    "storage_bucket": "fito-ce708.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:178982368859:android:fb687e82e0371262ac717e",
+        "android_client_info": {
+          "package_name": "com.example.fito"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqRqMHQlLSi9Mt0z2BNViQ1F0cYLZUmzs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
