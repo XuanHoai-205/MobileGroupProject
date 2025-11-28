@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.example.fito.ui.theme.FitoTheme
 
 @Composable
-fun LoginScreen(){
+fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -183,6 +183,9 @@ fun LoginScreen(){
 @Composable
 fun rv2(){
     FitoTheme(){
-        LoginScreen()
+        LoginScreen(
+            onLoginSuccess = {},
+            onNavigateRegister = {}
+        )
     }
 }

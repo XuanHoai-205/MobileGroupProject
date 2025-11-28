@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -69,9 +68,12 @@ fun SearchFriendsBar(input: String, onInputChange: (String) -> Unit){
 @Composable
 fun FriendCircle(){
     var friendInput by remember { mutableStateOf("") }
-    var friendNumber by remember { mutableStateOf("0") }
+    var friendNumber by remember { mutableStateOf(0) }
     val friendLimit: Int = 10
-    Scaffold (bottomBar = { BottomNavigationBar() }
+    Scaffold (bottomBar = { BottomNavigationBar(
+        currentRoute = "social",
+        onItemClick = {}
+    ) }
 
 
     )
@@ -86,7 +88,7 @@ fun FriendCircle(){
 
 
         ){
-            SearchFriendsBar(input = friendInput, onInputChange = {})
+            SearchFriendsBar(input = friendInput, onInputChange = {friendInput = it})
             Spacer(modifier=Modifier.height(10.dp))
             Text(
                 text="Kết nối và hỗ trợ lẫn nhau trên hành trình rèn luyện sức khỏe của bạn",
@@ -116,8 +118,14 @@ fun FriendCircle(){
                     text="$friendNumber/$friendLimit bạn bè",
                     fontSize= 18.sp
                 )
-            }
 
+            }
+            Spacer(modifier=Modifier.height(10.dp))
+            if(friendNumber==0){
+                Text(
+                    text="Hiện tại không có người bạn nào"
+                )
+            }
         }
     }
 }

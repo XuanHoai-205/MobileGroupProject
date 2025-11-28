@@ -21,13 +21,13 @@ data class BottomNavItem(
 )
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(currentRoute: String?, onItemClick: (String) -> Unit) {
     val items = listOf(
-        BottomNavItem("", Icons.Filled.Home),
-        BottomNavItem("", Icons.Filled.LocalDining),
-        BottomNavItem("", Icons.Filled.FitnessCenter),
-        BottomNavItem("", Icons.Filled.Group),
-        BottomNavItem("", Icons.Filled.CalendarToday)
+        BottomNavItem("dashboard", Icons.Filled.Home),
+        BottomNavItem("food_tracking", Icons.Filled.LocalDining),
+        BottomNavItem("exercise", Icons.Filled.FitnessCenter),
+        BottomNavItem("social", Icons.Filled.Group),
+        BottomNavItem("workout_schedule", Icons.Filled.CalendarToday)
     )
 
     NavigationBar {
@@ -35,8 +35,8 @@ fun BottomNavigationBar() {
             NavigationBarItem(
                 icon = { Icon(item.icon, contentDescription = item.label) },
                 label = { Text(item.label) },
-                selected = false,
-                onClick = { /* TODO: handle click */ },
+                selected = currentRoute == item.label,
+                onClick = { onItemClick(item.label) },
                 colors = NavigationBarItemDefaults.colors(
                     unselectedIconColor = Color.Gray,
                     unselectedTextColor = Color.Gray

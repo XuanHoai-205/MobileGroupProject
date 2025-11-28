@@ -30,7 +30,10 @@ import com.example.fito.components.BottomNavigationBar
 fun ScheduleScreen() {
 
     Scaffold(
-        bottomBar = { BottomNavigationBar() }
+        bottomBar = { BottomNavigationBar(
+            currentRoute = "workout_schedule",
+            onItemClick = {}
+        ) }
     ) { innerPadding ->
 
         val schedules = remember { mutableStateMapOf<Int, MutableList<String>>() }
@@ -145,7 +148,7 @@ fun ScheduleScreen() {
                     .height(60.dp)
                     .background(Color(0xFF8C8C8C), shape = RoundedCornerShape(12.dp))
                     .clickable {
-                        // TODO: Mở màn hình thêm lịch
+
                         // ví dụ: navController.navigate("add_schedule")
                     }
                     .padding(horizontal = 16.dp),
@@ -167,7 +170,6 @@ fun ScheduleScreen() {
                     .height(60.dp)
                     .background(Color(0xFF8C8C8C), shape = RoundedCornerShape(12.dp))
                     .clickable {
-                        // TODO: Mở trang xem lịch tập
                         // ví dụ: navController.navigate("schedule_detail")
                     }
                     .padding(horizontal = 16.dp),

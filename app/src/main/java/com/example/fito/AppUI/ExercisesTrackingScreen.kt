@@ -20,14 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.fito.ui.theme.FitoTheme
 import com.example.fito.components.BottomNavigationBar
+import com.example.fito.viewmodel.ExerciseVM
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogExerciseCard() {
+fun LogExerciseCard(viewModel: ExerciseVM) {
 
-    var selectedExercise by remember { mutableStateOf("") }
-    var duration by remember { mutableStateOf("") }
-    var calories by remember { mutableStateOf("") }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -61,8 +59,8 @@ fun LogExerciseCard() {
             )
 
                 OutlinedTextField(
-                    value = selectedExercise,
-                    onValueChange = {},
+                    value = viewModel.selectedExercise,
+                    onValueChange = {viewModel.onExerciseChange(it)},
                     readOnly = true,
                     label = { Text("Nhập một bài tập") },
                     modifier = Modifier
@@ -80,8 +78,8 @@ fun LogExerciseCard() {
 
             Spacer(Modifier.height(6.dp))
             OutlinedTextField(
-                value = duration,
-                onValueChange = { duration = it },
+                value = viewModel.duration,
+                onValueChange = {viewModel.onDurationChange(it) },
                 placeholder = { Text("Ví dụ: 30 phút") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -92,8 +90,8 @@ fun LogExerciseCard() {
             )
             Spacer(Modifier.height(6.dp))
             OutlinedTextField(
-                value = calories,
-                onValueChange = { duration = it },
+                value = viewModel.calories,
+                onValueChange = { viewModel.onCaloriesChange(it) },
                 placeholder = { Text("Ví dụ: 300 calo") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -102,7 +100,7 @@ fun LogExerciseCard() {
 
 
             Button(
-                onClick = {},
+                onClick = {viewModel.submitExercise()},
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -121,9 +119,14 @@ fun LogExerciseCard() {
 }
 
 @Composable
-fun ExScreen(){
+fun ExScreen(
+    viewModel: ExerciseVM = androidx.lifecycle.viewmodel.compose.viewModel()
+){
     Scaffold(
-        bottomBar = { BottomNavigationBar() }
+        bottomBar = { BottomNavigationBar(
+            currentRoute = "exercise",
+            onItemClick = {}
+        ) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -133,14 +136,13 @@ fun ExScreen(){
             verticalArrangement = Arrangement.Center
 
         ){
-            LogExerciseCard()
+            LogExerciseCard(viewModel)
             Box(
                 modifier = Modifier
 
                     .height(60.dp)
                     .background(Color(0xFF8C8C8C), shape = RoundedCornerShape(12.dp))
                     .clickable {
-                        // TODO: Mở trang xem lịch tập
                         // ví dụ: navController.navigate("schedule_detail")
                     }
                     .padding(horizontal = 16.dp),
