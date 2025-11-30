@@ -38,16 +38,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fito.ui.theme.FitoTheme
+import com.example.fito.viewmodel.LoginVM
+
+
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit) {
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-
-    var usernameError by remember { mutableStateOf("") }
-    var passwordError by remember { mutableStateOf("") }
+fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit,viewModel: LoginVM = viewModel()) {
+    val username = viewModel.username
+    val password = viewModel.password
+    val passwordVisible = viewModel.passwordVisible
+    val usernameError = viewModel.usernameError
+    val passwordError = viewModel.passwordError
     Box(
         modifier= Modifier
             .fillMaxSize()
@@ -90,7 +93,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit) {
                       contentDescription="")
                 },
                 value = username,
-                onValueChange = { username = it },
+                onValueChange = { viewModel.onUsernameChange(it) },
                 label = { Text(usernameError.ifEmpty{"Tên người dùng"},color = if (usernameError.isNotEmpty()) Red else Unspecified) },
                 placeholder = { Text("Nhập tên người dùng của bạn") },
                 singleLine = true,
@@ -104,7 +107,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit) {
                         contentDescription="")
                 },
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { viewModel.onPasswordChange(it) },
                 label = { Text(passwordError.ifEmpty{"Mật khẩu"},color = if (passwordError.isNotEmpty()) Red else Unspecified) },
                 placeholder = { Text("Nhập mật khẩu") },
                 singleLine = true,
@@ -120,7 +123,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit) {
                         contentDescription = "",
                         modifier= Modifier
                             .clickable{
-                                passwordVisible= !passwordVisible
+                                viewModel.onTogglePasswordVisible()
                             }
                             .size(24.dp)
 
