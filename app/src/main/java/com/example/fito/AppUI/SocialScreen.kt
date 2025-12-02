@@ -70,15 +70,8 @@ fun FriendCircle(){
     var friendInput by remember { mutableStateOf("") }
     var friendNumber by remember { mutableStateOf(0) }
     val friendLimit: Int = 10
-    Scaffold (bottomBar = { BottomNavigationBar(
-        currentRoute = "social",
-        onItemClick = {}
-    ) }
-
-
-    )
+    Scaffold ()
     {innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()

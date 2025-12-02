@@ -78,7 +78,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit,viewM
 
             ){
                 Text(
-                    text="Miễn là bạn muốn thay đổi chúng tôi sẽ đồng hành cùng bạn ",
+                    text="Chúng tôi sẽ đồng hành trên con đường thay đổi của bạn" ,
                     fontSize=20.sp,
                     textAlign = TextAlign.Center,
                     fontWeight=FontWeight.Light
@@ -132,7 +132,9 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit,viewM
             )
             Spacer(modifier=Modifier.height(20.dp))
             Button(
-                onClick = { /* xử lí các th người dùng có nhập ko nhập và các logic sau khi bấm */},
+                onClick = {
+                    viewModel.onLoginClick(onLoginSuccess)
+                },
                 modifier = Modifier
                     .width(250.dp)
                     .height(50.dp),
@@ -173,7 +175,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateRegister: () -> Unit,viewM
                 text = annotatedText,
                 fontSize = 16.sp,
                 modifier = Modifier.clickable {
-                    //  Xử lý khi người dùng bấm dk
+                    onNavigateRegister()
                 })
         }
     }

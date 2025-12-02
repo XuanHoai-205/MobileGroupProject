@@ -25,6 +25,11 @@ fun AppNavGraph(
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
+                },
+                onNavigateRegister = {
+                    navController.navigate(Screen.Register.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -45,15 +50,18 @@ fun AppNavGraph(
         composable(Screen.Register.route) {
             RegisterScreen(
                 onRegisterSuccess = {
-                    navController.navigate(Screen.Dashboard.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
+                },
+                onNavigateLogin={
+                    navController.navigate(Screen.Login.route)
                 }
             )
         }
 
         composable(Screen.Dashboard.route) {
-            MainScreen(navController = navController)
+            MainScreen()
         }
     }
 }

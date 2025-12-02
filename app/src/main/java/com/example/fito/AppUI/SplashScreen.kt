@@ -88,7 +88,7 @@ fun LoginRegisterRow(
     }
 }
 @Composable
-fun FirstScreen(onNavigateLogin: () -> Unit) {
+fun FirstScreen(onNavigateLogin: () -> Unit, onNavigateRegister:()-> Unit) {
 
     Box(
         modifier= Modifier
@@ -102,8 +102,8 @@ fun FirstScreen(onNavigateLogin: () -> Unit) {
             ){
                 Box(
                     modifier = Modifier
-                        .size(width= 250.dp,height=60.dp)
-                        .background(Color(0xFF696969 )),
+                        .size(width= 240.dp,height=60.dp)
+                        .background(Color(0xFFA9A9A9  )),
                     contentAlignment = Alignment.Center
                 ){
                     Text(text="Fito",
@@ -119,8 +119,8 @@ fun FirstScreen(onNavigateLogin: () -> Unit) {
 
                 ){
                     LoginRegisterRow(
-                        onLoginClick = { /* xử lý khi bấm Đăng nhập */ },
-                        onRegisterClick = { /* xử lý khi bấm Đăng ký */ }
+                        onLoginClick = { onNavigateLogin() },
+                        onRegisterClick = { onNavigateRegister() }
                     )
                 }
             }
@@ -140,7 +140,9 @@ fun FirstScreen(onNavigateLogin: () -> Unit) {
             )
             Spacer(modifier=Modifier.height(25.dp))
             Button(
-                onClick = {  },
+                onClick = {
+                    onNavigateRegister()
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     contentColor = Color.White
@@ -165,14 +167,14 @@ fun FirstScreen(onNavigateLogin: () -> Unit) {
                     FeatureBox(
                         title = "Theo dõi lượng calo",
                         description = "Theo dõi lượng calo vào và ra của bạn cho việc giảm cân hiệu quả",
-                        backgroundColor = Color(0xFFD3D3D3), // xám nhạt
+                        backgroundColor = Color(0xFFD3D3D3),
                         modifier = Modifier.weight(1f)
                     )
                     FeatureBox(
 
                         title = "Thư viện bài tập ",
                         description = "Danh sách bài tập tiêu thụ nhiều calo dành riêng cho việc giảm cân",
-                        backgroundColor = Color(0xFF696969 ), // xám đậm
+                        backgroundColor = Color(0xFF808080 ),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -180,13 +182,13 @@ fun FirstScreen(onNavigateLogin: () -> Unit) {
                     FeatureBox(
                         title = "Vòng bạn bè",
                         description = "Kết bạn, chia sẻ quá trình luyện tập và tạo động lực cùng nhau",
-                        backgroundColor = Color(0xFF696969 ), // xám đậm
+                        backgroundColor = Color(0xFF808080 ),
                         modifier = Modifier.weight(1f)
                     )
                     FeatureBox(
                         title = "Tập luyện cùng nhau",
                         description = "Tạo lịch tập cùng nhau mà bạn bè có thể tham gia",
-                        backgroundColor = Color(0xFFD3D3D3), // xám nhạt
+                        backgroundColor = Color(0xFFD3D3D3),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -209,7 +211,8 @@ fun FirstScreen(onNavigateLogin: () -> Unit) {
 fun rv1(){
     FitoTheme(){
         FirstScreen(
-            onNavigateLogin = {}
+            onNavigateLogin = {},
+            onNavigateRegister={}
         )
     }
 }

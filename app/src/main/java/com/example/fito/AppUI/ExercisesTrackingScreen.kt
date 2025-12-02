@@ -3,6 +3,8 @@ package com.example.fito
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -16,12 +18,191 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fito.ui.theme.FitoTheme
 import com.example.fito.components.BottomNavigationBar
 import com.example.fito.viewmodel.ExerciseVM
 
+data class PresetExercise(
+    val name: String,
+    val caloriesPer60: Int
+)
+
+val presetExercises = listOf(
+    PresetExercise("Chạy bộ", 600),
+    PresetExercise("Đạp xe", 500),
+    PresetExercise("Nhảy dây", 700),
+    PresetExercise("Đẩy tạ", 400),
+    PresetExercise("Yoga", 250),
+    PresetExercise("Bơi lội", 650),
+    PresetExercise("Leo cầu thang", 550),
+    PresetExercise("Plank", 350),
+    PresetExercise("Burpee", 800),
+    PresetExercise("HIIT", 900)
+)
+
+@Composable
+fun PresetExerciseDropdown(viewModel: ExerciseVM) {
+
+    Column(
+        modifier=Modifier
+            .padding(top=20.dp)
+    ) {
+
+        Box(
+            modifier = Modifier
+                .size(width=360.dp, height=60.dp)
+                .height(60.dp)
+                .background(Color(0xFF8C8C8C), RoundedCornerShape(14.dp))
+                .clickable { viewModel.onDropdownClick() }
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Row(modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Text(
+                    text = if (viewModel.expanded)
+                        "Ẩn danh sách bài tập"
+                    else
+                        "Danh sách bài tập có sẵn",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
+        }
+
+        if (viewModel.expanded) {
+            Spacer(Modifier.height(8.dp))
+
+            LazyColumn(
+                modifier = Modifier
+                    .size(width=360.dp, height=200.dp)
+            ) {
+                items(presetExercises) { exercise ->
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            Column {
+                                Text(exercise.name, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "${exercise.caloriesPer60} calo / 60 phút",
+                                    fontSize = 13.sp,
+                                    color = Color.Gray
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    viewModel.onExerciseChange(exercise.name)
+                                    viewModel.onCaloriesChange(exercise.caloriesPer60.toString())
+                                    viewModel.submitExercise()
+                                }
+                            ) {
+                                Text("Thêm")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+@Composable
+fun AddedExercisesDialog(
+    viewModel: ExerciseVM,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    "Danh sách bài tập đã thêm",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(12.dp))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp)
+                ) {
+                    items(viewModel.addedExercises) { exercise ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(exercise.name, fontWeight = FontWeight.Bold)
+                                Text("${exercise.calories} calo", fontSize = 13.sp, color = Color.Gray)
+                            }
+
+                            Button(
+                                onClick = { viewModel.toggleExerciseCompleted(exercise) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (exercise.completed) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                                    contentColor = Color.White
+                                )
+                            ) {
+                                Text(if (exercise.completed) "Hoàn thành" else "Chưa hoàn thành")
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF8C8C8C),
+                        contentColor = Color.White
+                )
+                ) {
+                    Text("Đóng")
+                }
+            }
+        }
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogExerciseCard(viewModel: ExerciseVM) {
@@ -40,7 +221,8 @@ fun LogExerciseCard(viewModel: ExerciseVM) {
 
             Text(
                 text = "Ghi lại bài tập",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                fontSize=20.sp
             )
 
             Spacer(Modifier.height(4.dp))
@@ -61,7 +243,6 @@ fun LogExerciseCard(viewModel: ExerciseVM) {
                 OutlinedTextField(
                     value = viewModel.selectedExercise,
                     onValueChange = {viewModel.onExerciseChange(it)},
-                    readOnly = true,
                     label = { Text("Nhập một bài tập") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -120,45 +301,55 @@ fun LogExerciseCard(viewModel: ExerciseVM) {
 
 @Composable
 fun ExScreen(
-    viewModel: ExerciseVM = androidx.lifecycle.viewmodel.compose.viewModel()
-){
-    Scaffold(
-        bottomBar = { BottomNavigationBar(
-            currentRoute = "exercise",
-            onItemClick = {}
-        ) }
-    ) { innerPadding ->
-        Column(
+    viewModel: ExerciseVM = viewModel()
+) {
+    Scaffold { innerPadding ->
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
 
-        ){
-            LogExerciseCard(viewModel)
-            Box(
-                modifier = Modifier
-
-                    .height(60.dp)
-                    .background(Color(0xFF8C8C8C), shape = RoundedCornerShape(12.dp))
-                    .clickable {
-                        // ví dụ: navController.navigate("schedule_detail")
-                    }
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = "Xem bài tập đã thêm",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color=Color.White
-                )
+            item {
+                PresetExerciseDropdown(viewModel)
+                Spacer(Modifier.height(16.dp))
             }
+
+            item {
+                LogExerciseCard(viewModel)
+                Spacer(Modifier.height(16.dp))
+            }
+
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(width=360.dp, height=60.dp)
+                        .padding(horizontal = 16.dp)
+                        .background(Color(0xFF8C8C8C), shape = RoundedCornerShape(12.dp))
+                        .clickable { viewModel.onDialogOpen() }
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = "Xem bài tập đã thêm",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+        if (viewModel.showDialog) {
+            AddedExercisesDialog(
+                viewModel = viewModel,
+                onDismiss = { viewModel.onDialogClose() }
+            )
         }
     }
 }
-
 
 @Preview(showSystemUi = true)
 @Composable

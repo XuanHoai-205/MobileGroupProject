@@ -19,10 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,19 +35,21 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fito.ui.theme.FitoTheme
+import com.example.fito.viewmodel.RegisterVM
 import kotlin.text.ifEmpty
 
 @Composable
-fun RegisterScreen(onRegisterSuccess: () -> Unit) {
-    var phone by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateLogin: () -> Unit, viewModel: RegisterVM = viewModel()) {
+    val phone = viewModel.phone
+    val password = viewModel.password
+    val username = viewModel.username
+    val passwordVisible = viewModel.passwordVisible
+    val usernameError = viewModel.usernameError
+    val phoneError = viewModel.phoneError
+    val passwordError = viewModel.passwordError
 
-    var usernameError by remember { mutableStateOf("") }
-    var phoneError by remember { mutableStateOf("") }
-    var passwordError by remember { mutableStateOf("") }
     Box(
         modifier= Modifier
             .fillMaxSize()
@@ -94,7 +92,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                         contentDescription="")
                 },
                 value = phone,
-                onValueChange = { phone = it },
+                onValueChange = { viewModel.onPhoneChange(it) },
                 label = { Text(phoneError.ifEmpty{"Số điện thoại"},color = if (phoneError.isNotEmpty()) Red else Unspecified) },
                 placeholder = { Text("Nhập số điện thoại của bạn") },
                 singleLine = true,
@@ -107,7 +105,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                         contentDescription="")
                 },
                 value = username,
-                onValueChange = { username = it },
+                onValueChange = { viewModel.onUsernameChange(it) },
                 label = { Text(usernameError.ifEmpty{"Tên người dùng"},color = if (usernameError.isNotEmpty()) Red else Unspecified) },
                 placeholder = { Text("Nhập tên người dùng của bạn") },
                 singleLine = true,
@@ -120,7 +118,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                         contentDescription="")
                 },
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { viewModel.onPasswordChange(it) },
                 label = { Text(passwordError.ifEmpty{"Mật khẩu"},color = if (passwordError.isNotEmpty()) Red else Unspecified) },
                 placeholder = { Text("Nhập mật khẩu") },
                 singleLine = true,
@@ -136,7 +134,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                         contentDescription = "",
                         modifier= Modifier
                             .clickable{
-                            passwordVisible= !passwordVisible
+                            viewModel.togglePasswordVisible()
                         }
                             .size(24.dp)
 
@@ -145,7 +143,9 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
             )
             Spacer(modifier=Modifier.height(20.dp))
             Button(
-                onClick = { /* Xử lý khi nhấn nút */ },
+                onClick = {
+                    viewModel.onRegisterClick {onRegisterSuccess}
+                },
                 modifier = Modifier
                     .width(250.dp)
                     .height(50.dp),
@@ -176,7 +176,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
                 text = annotatedText,
                 fontSize = 16.sp,
                 modifier = Modifier.clickable {
-                    //  Xử lý khi người dùng bấm "Đăng nhập"
+                   onNavigateLogin()
                 })
             }
         }
@@ -192,7 +192,8 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit) {
 fun rv3(){
     FitoTheme(){
         RegisterScreen(
-            onRegisterSuccess = {}
+            onRegisterSuccess = {},
+            onNavigateLogin = {}
         )
     }
 }

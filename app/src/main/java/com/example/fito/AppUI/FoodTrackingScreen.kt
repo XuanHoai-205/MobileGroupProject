@@ -1,18 +1,22 @@
 package com.example.fito
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -22,11 +26,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,59 +35,75 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fito.components.BottomNavigationBar
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fito.ui.theme.FitoTheme
-import com.example.fito.viewmodel.ExerciseVM
 import com.example.fito.viewmodel.MealVM
 
-
 @Composable
-fun FoodAddCard(viewModel: MealVM){
-    var mealDetail by remember { mutableStateOf("") }
+fun ExitConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    viewModel: MealVM
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Xác nhận thoát") },
+        text = { Text("Các thông tin về lịch bạn đã điền sẽ không được lưu lại. Bạn có chắc chắn muốn thoát?") },
+        confirmButton = {
+            TextButton(onClick = { viewModel.confirmExit() }) {
+                Text("Thoát")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { viewModel.declineExit() }) {
+                Text("Quay lại")
+            }
+        }
+    )
+}
+@Composable
+fun FoodAddCard(viewModel: MealVM) {
+    if (viewModel.showCard) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(16.dp)
+                .offset (y = -60.dp),
             shape = RoundedCornerShape(20.dp),
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .padding(20.dp)
+                modifier = Modifier.padding(20.dp)
             ) {
 
                 Text(
-                    text = "Ghi lại bài tập",
+                    text = "Ghi lại bữa ăn",
                     style = MaterialTheme.typography.titleMedium
                 )
-
                 Spacer(Modifier.height(4.dp))
 
                 Text(
-                    text = "Theo dõi lượng calo đã được đốt cháy",
+                    text = "Theo dõi lượng calo bạn đã nạp vào ",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
-
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    text = "Loại bài tập",
+                    text = "Món ăn",
                     style = MaterialTheme.typography.bodyMedium
                 )
-
                 OutlinedTextField(
                     value = viewModel.mealDetail,
-                    onValueChange = {viewModel.onMealDetailSet(it)},
-                    readOnly = true,
-                    label = { Text("Nhập một bài tập") },
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    onValueChange = { viewModel.onMealDetailSet(it) },
+                    label = { Text("Nhập món ăn") },
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(Modifier.height(6.dp))
+
                 Text(
-                    text = "Calo đốt cháy",
+                    text = "Calo tiêu thụ",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(Modifier.height(6.dp))
@@ -99,57 +116,72 @@ fun FoodAddCard(viewModel: MealVM){
 
                 Spacer(Modifier.height(20.dp))
 
-
-                Button(
-                    onClick = {viewModel.submitMeal()},
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8C8C8C),
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(2.dp))
-                    Text("Thêm bữa ăn")
+                    Button(
+                        onClick = { viewModel.submitMeal() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF8C8C8C),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Thêm bữa ăn")
+                    }
+
+                    Button(
+                        onClick = {
+                            viewModel.onExitButtonClick()  },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Gray,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Thoát")
+                    }
                 }
             }
         }
     }
-
+}
 
 @Composable
-fun MealButton(text: String) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .clickable {  },
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF8C8C8C)
-        )
-    ) {
-        Box(
+    fun MealButton(text: String,viewModel: MealVM) {
+
+        Card(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Text(
-                text = text,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White
+                .fillMaxWidth()
+                .height(60.dp)
+                .clickable { viewModel.buttonClick() },
+            shape = RoundedCornerShape(18.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF8C8C8C)
             )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = text,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
+            }
         }
     }
-}
 @Composable
-fun MealButtonsSection() {
+fun MealButtonsSection(viewModel: MealVM) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -157,28 +189,43 @@ fun MealButtonsSection() {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        MealButton("Thêm bữa sáng")
-        MealButton("Thêm bữa trưa")
-        MealButton("Thêm bữa tối")
-        MealButton("Thêm các bữa phụ")
+        MealButton("Thêm bữa sáng",viewModel)
+        MealButton("Thêm bữa trưa",viewModel)
+        MealButton("Thêm bữa tối",viewModel)
+        MealButton("Thêm các bữa phụ",viewModel)
     }
 }
 @Composable
 fun FoodTrackScreen(){
-    Scaffold(
-        bottomBar = { BottomNavigationBar(
-            currentRoute = "food_tracking",
-            onItemClick = {}
-        ) }
-    ) { innerPadding ->
+    val viewModel: MealVM = viewModel()
+
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
-            MealButtonsSection()
+        ) {
+            MealButtonsSection(viewModel)
+        }
+
+        if (viewModel.showCard) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x80000000))
+                    .clickable { viewModel.showCard = false },
+                contentAlignment = Alignment.Center
+            ) {
+                FoodAddCard(viewModel)
+            }
+            if (viewModel.showExitDialog) {
+                ExitConfirmationDialog(
+                    viewModel = viewModel,
+                    onConfirm = { viewModel.confirmExit() },
+                    onDismiss = { viewModel.declineExit() }
+                )
+            }
         }
     }
 }

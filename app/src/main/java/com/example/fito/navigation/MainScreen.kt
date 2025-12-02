@@ -18,9 +18,12 @@ import com.example.fito.ScheduleScreen
 import com.example.fito.components.BottomNavigationBar
 
 
+
 @Composable
-fun MainScreen(navController: NavHostController) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
+fun MainScreen() {
+    val bottomNavController = rememberNavController()
+
+    val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
@@ -28,7 +31,7 @@ fun MainScreen(navController: NavHostController) {
             BottomNavigationBar(
                 currentRoute = currentRoute,
                 onItemClick = { route ->
-                    navController.navigate(route) {
+                    bottomNavController.navigate(route) {
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -37,7 +40,7 @@ fun MainScreen(navController: NavHostController) {
         }
     ) { innerPadding ->
         NavHost(
-            navController = navController,
+            navController = bottomNavController,
             startDestination = Screen.Dashboard.route,
             modifier = Modifier.padding(innerPadding)
         ) {
@@ -49,6 +52,7 @@ fun MainScreen(navController: NavHostController) {
         }
     }
 }
+
 
 
 

@@ -42,17 +42,25 @@ class LoginVM: ViewModel() {
             var isValid = true
 
             if (username.isBlank()) {
-                usernameError = "Tên người dùng"
+                usernameError = "Hãy nhập tên người dùng"
                 isValid = false
+            }else{
+                usernameError =""
             }
 
             if (password.isBlank()) {
-                passwordError = "Mật khẩu"
+                passwordError = "Hãy nhập mật khẩu"
                 isValid = false
+            }else{
+                passwordError =""
             }
 
             if (isValid) {
-                onSuccess()
+                onSuccess(
+
+
+
+                )
             }
         }
     }
