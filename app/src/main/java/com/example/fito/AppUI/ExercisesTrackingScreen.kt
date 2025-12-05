@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -27,7 +28,11 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fito.ui.theme.FitoTheme
 import com.example.fito.components.BottomNavigationBar
+import com.example.fito.data.local.database.FitoDatabase
+import com.example.fito.data.repository.ExerciseRepository
+import com.example.fito.viewmodel.DashboardVM
 import com.example.fito.viewmodel.ExerciseVM
+import com.example.fito.viewmodel.ExerciseVMFactory
 
 data class PresetExercise(
     val name: String,
@@ -35,20 +40,20 @@ data class PresetExercise(
 )
 
 val presetExercises = listOf(
-    PresetExercise("Chạy bộ", 600),
-    PresetExercise("Đạp xe", 500),
-    PresetExercise("Nhảy dây", 700),
-    PresetExercise("Đẩy tạ", 400),
-    PresetExercise("Yoga", 250),
-    PresetExercise("Bơi lội", 650),
-    PresetExercise("Leo cầu thang", 550),
-    PresetExercise("Plank", 350),
+    PresetExercise("Chạy bộ", 550),
+    PresetExercise("Đạp xe", 600),
+    PresetExercise("Nhảy dây", 600),
+    PresetExercise("Yoga", 320),
+    PresetExercise("Bơi lội", 625),
+    PresetExercise("Leo cầu thang", 500),
+    PresetExercise("Boxing", 650),
     PresetExercise("Burpee", 800),
-    PresetExercise("HIIT", 900)
+    PresetExercise("HIIT", 800),
+    PresetExercise("LISS", 450)
 )
 
 @Composable
-fun PresetExerciseDropdown(viewModel: ExerciseVM) {
+fun PresetExerciseDropdown(viewModel: ExerciseVM,dashboardVM: DashboardVM) {
 
     Column(
         modifier=Modifier
@@ -140,6 +145,8 @@ fun AddedExercisesDialog(
     viewModel: ExerciseVM,
     onDismiss: () -> Unit
 ) {
+    val exercises by viewModel.todayExercises.collectAsState()
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(16.dp),
@@ -159,43 +166,49 @@ fun AddedExercisesDialog(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 400.dp)
-                ) {
-                    items(viewModel.addedExercises) { exercise ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(exercise.name, fontWeight = FontWeight.Bold)
-                                Text("${exercise.calories} calo", fontSize = 13.sp, color = Color.Gray)
-                            }
-
-                            Button(
-                                onClick = { viewModel.toggleExerciseCompleted(exercise) },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (exercise.completed) Color(0xFF4CAF50) else Color(0xFFFF9800),
-                                    contentColor = Color.White
-                                )
+                if (exercises.isEmpty()) {
+                    Text("Chưa có bài tập nào được thêm.", color = Color.Gray)
+                    Spacer(Modifier.height(16.dp))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp)
+                    ) {
+                        items(exercises, key = { it.id ?: it.name }) { exercise ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(if (exercise.completed) "Hoàn thành" else "Chưa hoàn thành")
+                                Column {
+                                    Text(exercise.name, fontWeight = FontWeight.Bold)
+                                    Text("${exercise.calories} calo", fontSize = 13.sp, color = Color.Gray)
+                                }
+
+                                Button(
+                                    onClick = { viewModel.toggleExerciseCompleted(exercise) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (exercise.completed) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                                        contentColor = Color.White
+                                    )
+                                ) {
+                                    Text(if (exercise.completed) "Hoàn thành" else "Chưa hoàn thành")
+                                }
                             }
                         }
                     }
+
+                    Spacer(Modifier.height(16.dp))
                 }
 
-                Spacer(Modifier.height(16.dp))
                 Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF8C8C8C),
                         contentColor = Color.White
-                )
+                    )
                 ) {
                     Text("Đóng")
                 }
@@ -205,7 +218,7 @@ fun AddedExercisesDialog(
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogExerciseCard(viewModel: ExerciseVM) {
+fun LogExerciseCard(viewModel: ExerciseVM,dashboardVM: DashboardVM) {
 
     Card(
         modifier = Modifier
@@ -251,7 +264,6 @@ fun LogExerciseCard(viewModel: ExerciseVM) {
 
             Spacer(Modifier.height(6.dp))
 
-            // Duration Label
             Text(
                 text = "Thời gian(phút)",
                 style = MaterialTheme.typography.bodyMedium
@@ -301,8 +313,16 @@ fun LogExerciseCard(viewModel: ExerciseVM) {
 
 @Composable
 fun ExScreen(
-    viewModel: ExerciseVM = viewModel()
+    dashboardVM:DashboardVM=viewModel()
 ) {
+    val context = LocalContext.current
+    val database = FitoDatabase.getDatabase(context)
+    val exerciseDao = database.exerciseDao()
+    val repository = ExerciseRepository(exerciseDao)
+    val factory = ExerciseVMFactory(repository)
+    val viewModel: ExerciseVM = viewModel(factory = factory)
+
+
     Scaffold { innerPadding ->
 
         LazyColumn(
@@ -314,12 +334,12 @@ fun ExScreen(
         ) {
 
             item {
-                PresetExerciseDropdown(viewModel)
+                PresetExerciseDropdown(viewModel, dashboardVM)
                 Spacer(Modifier.height(16.dp))
             }
 
             item {
-                LogExerciseCard(viewModel)
+                LogExerciseCard(viewModel,dashboardVM)
                 Spacer(Modifier.height(16.dp))
             }
 

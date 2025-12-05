@@ -61,7 +61,15 @@ fun AppNavGraph(
         }
 
         composable(Screen.Dashboard.route) {
-            MainScreen()
+            MainScreen(
+                onLogOut= {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Dashboard.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
         }
     }
 }

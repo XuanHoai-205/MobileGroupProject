@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -16,21 +17,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fito.data.local.database.FitoDatabase
+import com.example.fito.data.repository.ScheduleRepository
 import com.example.fito.ui.theme.FitoTheme
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.*
-import com.example.fito.components.BottomNavigationBar
-import com.example.fito.viewmodel.ExerciseVM
-import com.example.fito.viewmodel.MealVM
 import com.example.fito.viewmodel.ScheduleVM
+import com.example.fito.viewmodel.ScheduleViewModelFactory
+
 
 @Composable
 fun ExitConfirmationDialogSC(
@@ -59,6 +62,8 @@ fun AddedScheduleDialog(
     viewModel: ScheduleVM,
     onDismiss: () -> Unit
 ) {
+    val addedSchedules by viewModel.addedSchedules.collectAsState()
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(16.dp),
@@ -83,7 +88,8 @@ fun AddedScheduleDialog(
                         .fillMaxWidth()
                         .heightIn(max = 400.dp)
                 ) {
-                    items(viewModel.addedSchedules) { schedule ->
+                    // Đã fix lỗi: Sử dụng biến State đã thu thập
+                    items(addedSchedules) { schedule ->
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -156,14 +162,44 @@ fun ScheduleAddCard(viewModel: ScheduleVM) {
                 Spacer(Modifier.height(6.dp))
 
                 Text(
-                    text = "Thời gian",
+                    text = "Ngày/Tháng/Năm",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(Modifier.height(6.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = viewModel.scheduleDayInput,
+                        onValueChange = { viewModel.onScheduleDayChange(it) },
+                        label = { Text("Ngày") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = viewModel.scheduleMonthInput,
+                        onValueChange = { viewModel.onScheduleMonthChange(it) },
+                        label = { Text("Tháng") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = viewModel.scheduleYearInput,
+                        onValueChange = { viewModel.onScheduleYearChange(it) },
+                        label = { Text("Năm") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "Giờ bắt đầu",
+                    style = MaterialTheme.typography.bodyMedium
+                )
                 OutlinedTextField(
-                    value = viewModel.scheduleTime,
+                    value = viewModel.scheduleTimeInput,
                     onValueChange = { viewModel.onScheduleTimeChange(it) },
-                    placeholder = { Text("Ví dụ: 4/12/2025") },
+                    label = { Text("Giờ (HH:mm)") },
+                    placeholder = { Text("Ví dụ: 10:30") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(6.dp))
@@ -219,22 +255,20 @@ fun ScheduleAddCard(viewModel: ScheduleVM) {
 fun ScheduleCalendar(
     schedules: Map<Int, List<String>>,
     selectedDay: Int?,
-    onDaySelected: (Int) -> Unit
+    onDaySelected: (Int) -> Unit,
+    currentMonth: YearMonth,
+    onMonthChange: (YearMonth) -> Unit
 ) {
     val today = LocalDate.now()
-    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     val daysInMonth = currentMonth.lengthOfMonth()
-    val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, Locale("vi"))
+    val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, Locale("vi")) // <-- Sử dụng tham số"vi"))
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier.fillMaxWidth()
     ) {
-
-        IconButton(onClick = {
-            currentMonth = currentMonth.minusMonths(1)
-        }) {
+        IconButton(onClick = { onMonthChange(currentMonth.minusMonths(1)) }) {
             Text("←", fontSize = 32.sp)
         }
 
@@ -244,9 +278,7 @@ fun ScheduleCalendar(
             fontWeight = FontWeight.Bold
         )
 
-        IconButton(onClick = {
-            currentMonth = currentMonth.plusMonths(1)
-        }) {
+        IconButton(onClick = { onMonthChange(currentMonth.plusMonths(1)) }) {
             Text("→", fontSize = 32.sp)
         }
     }
@@ -338,13 +370,17 @@ fun ScheduleCalendar(
         }
     }
 }
-
 @Composable
 @RequiresApi(Build.VERSION_CODES.O)
 fun ScheduleScreen(
-    viewModel: ScheduleVM = viewModel()
 ) {
-    val schedules = remember { mutableStateMapOf<Int, List<String>>() }
+    val context = LocalContext.current
+    val dao = FitoDatabase.getDatabase(context).scheduleDao()
+    val repository = ScheduleRepository(dao)
+    val factory = ScheduleViewModelFactory(repository)
+    val viewModel: ScheduleVM =viewModel(factory = factory)
+    val schedules by viewModel.schedulesForCalendar.collectAsState()
+    val currentCalendarMonth by viewModel.currentCalendarMonth.collectAsState()
     var selectedDay by remember { mutableStateOf<Int?>(null) }
     Scaffold { innerPadding ->
 
@@ -357,11 +393,15 @@ fun ScheduleScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 ScheduleCalendar(
                     schedules = schedules,
                     selectedDay = selectedDay,
-                    onDaySelected = { selectedDay = it }
+                    onDaySelected = { selectedDay = it },
+                    currentMonth = currentCalendarMonth,
+                    onMonthChange = { newMonth ->
+                        viewModel.updateCurrentCalendarMonth(newMonth)
+                        selectedDay = null
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -434,6 +474,6 @@ fun ScheduleScreen(
 @Composable
 fun rv5() {
     FitoTheme {
-        ScheduleScreen(viewModel())
+        ScheduleScreen()
     }
 }

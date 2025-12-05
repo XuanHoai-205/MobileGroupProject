@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,20 +26,28 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fito.data.local.database.FitoDatabase
+import com.example.fito.data.model.MealEntity
+import com.example.fito.data.repository.MealRepository
 import com.example.fito.ui.theme.FitoTheme
+import com.example.fito.viewmodel.DashboardVM
 import com.example.fito.viewmodel.MealVM
+import com.example.fito.viewmodel.MealVMFactory
+import java.util.Calendar
 
 @Composable
 fun ExitConfirmationDialog(
@@ -62,7 +72,8 @@ fun ExitConfirmationDialog(
     )
 }
 @Composable
-fun FoodAddCard(viewModel: MealVM) {
+fun FoodAddCard(viewModel: MealVM,
+                dashboardViewModel: DashboardVM) {
     if (viewModel.showCard) {
         Card(
             modifier = Modifier
@@ -150,15 +161,41 @@ fun FoodAddCard(viewModel: MealVM) {
         }
     }
 }
-
 @Composable
-    fun MealButton(text: String,viewModel: MealVM) {
+fun MealItem(meal: MealEntity) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(meal.mealName, fontWeight = FontWeight.Bold)
+            Text(
+                "${meal.mealCalories} calo",
+                fontSize = 13.sp,
+                color = Color.Gray
+            )
+            Text(
+                "Buổi: ${meal.mealType}",
+                fontSize = 13.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
+@Composable
+    fun MealButton(text: String,viewModel: MealVM, mealType: String) {
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
-                .clickable { viewModel.buttonClick() },
+                .clickable { viewModel.buttonClick()
+                    viewModel.onMealTypeSelect(mealType)
+                    },
             shape = RoundedCornerShape(18.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
             colors = CardDefaults.cardColors(
@@ -189,16 +226,43 @@ fun MealButtonsSection(viewModel: MealVM) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        MealButton("Thêm bữa sáng",viewModel)
-        MealButton("Thêm bữa trưa",viewModel)
-        MealButton("Thêm bữa tối",viewModel)
-        MealButton("Thêm các bữa phụ",viewModel)
+        MealButton("Thêm bữa sáng",viewModel, "Sáng")
+        MealButton("Thêm bữa trưa",viewModel,"Trưa")
+        MealButton("Thêm bữa tối",viewModel,"Tối")
+        MealButton("Thêm các bữa phụ",viewModel,"Phụ")
     }
 }
-@Composable
-fun FoodTrackScreen(){
-    val viewModel: MealVM = viewModel()
 
+@Composable
+fun FoodTrackScreen() {
+    val context = LocalContext.current
+    val dashboardVM: DashboardVM = viewModel()
+    val database = FitoDatabase.getDatabase(context)
+    val mealDao = database.mealDao()
+    val repository = MealRepository(mealDao)
+    val factory = MealVMFactory(repository)
+
+    val mealVM: MealVM = viewModel(factory = factory)
+
+
+
+    val startOfToday = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    val endOfToday = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 23)
+        set(Calendar.MINUTE, 59)
+        set(Calendar.SECOND, 59)
+        set(Calendar.MILLISECOND, 999)
+    }.timeInMillis
+    val meals by mealVM.getTodayMeals(
+        startOfDay = startOfToday,
+        endOfDay = endOfToday
+    ).collectAsState(initial = emptyList())
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -206,29 +270,50 @@ fun FoodTrackScreen(){
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            MealButtonsSection(viewModel)
+            MealButtonsSection(viewModel = mealVM)
+            Spacer(modifier = Modifier.height(20.dp))
+
+            if (meals.isEmpty()) {
+                Text("Chưa có bữa ăn nào được ghi lại.", color = Color.Gray)
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(meals) { meal ->
+                        MealItem(meal)
+                    }
+                }
+            }
         }
 
-        if (viewModel.showCard) {
+        if (mealVM.showCard) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color(0x80000000))
-                    .clickable { viewModel.showCard = false },
+                    .clickable { mealVM.closeCard() },
                 contentAlignment = Alignment.Center
             ) {
-                FoodAddCard(viewModel)
+                Box(modifier = Modifier.clickable(false) {}) {
+                    FoodAddCard(viewModel = mealVM, dashboardViewModel = dashboardVM)
+                }
             }
-            if (viewModel.showExitDialog) {
-                ExitConfirmationDialog(
-                    viewModel = viewModel,
-                    onConfirm = { viewModel.confirmExit() },
-                    onDismiss = { viewModel.declineExit() }
-                )
-            }
+        }
+
+        if (mealVM.showExitDialog) {
+            ExitConfirmationDialog(
+                viewModel = mealVM,
+                onConfirm = { mealVM.confirmExit() },
+                onDismiss = { mealVM.declineExit() }
+            )
         }
     }
 }
+
+
+
+
 
 @Preview(showSystemUi = true)
 @Composable

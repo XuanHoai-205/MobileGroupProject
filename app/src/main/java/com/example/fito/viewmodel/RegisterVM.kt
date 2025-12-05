@@ -2,9 +2,13 @@ package com.example.fito.viewmodel
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import com.example.fito.data.repository.AuthRepository
 
 class RegisterVM : ViewModel() {
-    var phone by mutableStateOf("")
+
+    private val authRepository = AuthRepository()
+
+    var email by mutableStateOf("")
         private set
 
     var username by mutableStateOf("")
@@ -16,7 +20,7 @@ class RegisterVM : ViewModel() {
     var passwordVisible by mutableStateOf(false)
         private set
 
-    var phoneError by mutableStateOf("")
+    var emailError by mutableStateOf("")
         private set
 
     var usernameError by mutableStateOf("")
@@ -25,16 +29,19 @@ class RegisterVM : ViewModel() {
     var passwordError by mutableStateOf("")
         private set
 
-    fun onPhoneChange(value: String) {
-        phone = value
+    fun onEmailChange(value: String) {
+        email = value
+        emailError = ""
     }
 
     fun onUsernameChange(value: String) {
         username = value
+        usernameError = ""
     }
 
     fun onPasswordChange(value: String) {
         password = value
+        passwordError = ""
     }
 
     fun togglePasswordVisible() {
@@ -44,11 +51,11 @@ class RegisterVM : ViewModel() {
     fun onRegisterClick(onSuccess: () -> Unit) {
         var isValid = true
 
-        if (phone.isBlank()) {
-            phoneError = "Hãy nhập số điện thoại"
+        if (email.isBlank()) {
+            emailError = "Hãy nhập số điện thoại"
             isValid = false
         } else {
-            phoneError = ""
+            emailError = ""
         }
 
         if (username.isBlank()) {
@@ -58,16 +65,27 @@ class RegisterVM : ViewModel() {
             usernameError = ""
         }
 
-        if (password.isBlank()) {
-            passwordError = "Hãy nhập mật khẩu"
+        if (password.length < 6) {
+            passwordError = "Mật khẩu phải từ 6 ký tự"
             isValid = false
         } else {
             passwordError = ""
         }
 
-        if (isValid) {
+        if (!isValid) return
 
-            onSuccess()
+        val email = if (email.contains("@")) email else "$email@gmail.com"
+
+        authRepository.register(
+            email = email,
+            password = password,
+            username = username
+        ) { ok, msg ->
+            if (ok) {
+                onSuccess()
+            } else {
+                passwordError = msg ?: "Đăng ký thất bại"
+            }
         }
     }
 }

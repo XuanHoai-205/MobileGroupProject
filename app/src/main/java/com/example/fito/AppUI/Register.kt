@@ -2,22 +2,12 @@ package com.example.fito
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Phone
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,110 +31,130 @@ import com.example.fito.viewmodel.RegisterVM
 import kotlin.text.ifEmpty
 
 @Composable
-fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateLogin: () -> Unit, viewModel: RegisterVM = viewModel()) {
-    val phone = viewModel.phone
+fun RegisterScreen(
+    onRegisterSuccess: () -> Unit,
+    onNavigateLogin: () -> Unit,
+    viewModel: RegisterVM = viewModel()
+) {
+    val email = viewModel.email
     val password = viewModel.password
     val username = viewModel.username
     val passwordVisible = viewModel.passwordVisible
     val usernameError = viewModel.usernameError
-    val phoneError = viewModel.phoneError
+    val phoneError = viewModel.emailError
     val passwordError = viewModel.passwordError
 
     Box(
-        modifier= Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Color.White),
         contentAlignment = Alignment.TopCenter
-    ){
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ){
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
             Spacer(modifier = Modifier.height(50.dp))
 
             Text(
-                text="FiTo",
-                fontSize=40.sp,
+                text = "FiTo",
+                fontSize = 40.sp,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text="Chào mừng bạn",
-                fontSize=25.sp,
+                text = "Chào mừng bạn",
+                fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
             )
-            Box(
-                modifier=Modifier
-                    .width(330.dp)
 
-            ){
+            Box(modifier = Modifier.width(330.dp)) {
                 Text(
-                    text="Tạo tài khoản mới để bắt đầu cuộc hành trình",
-                    fontSize=20.sp,
+                    text = "Tạo tài khoản mới để bắt đầu cuộc hành trình",
+                    fontSize = 20.sp,
                     textAlign = TextAlign.Center,
-                    fontWeight=FontWeight.Light
-
+                    fontWeight = FontWeight.Light
                 )
             }
 
+            Spacer(modifier = Modifier.height(20.dp))
+
             OutlinedTextField(
-                leadingIcon={
-                    Icon(
-                        Icons.Rounded.Phone,
-                        contentDescription="")
+                leadingIcon = {
+                    Icon(Icons.Rounded.Phone, contentDescription = "")
                 },
-                value = phone,
-                onValueChange = { viewModel.onPhoneChange(it) },
-                label = { Text(phoneError.ifEmpty{"Số điện thoại"},color = if (phoneError.isNotEmpty()) Red else Unspecified) },
-                placeholder = { Text("Nhập số điện thoại của bạn") },
+                value = email,
+                onValueChange = { viewModel.onEmailChange(it) },
+                label = {
+                    Text(
+                        phoneError.ifEmpty { "Email đăng kí" },
+                        color = if (phoneError.isNotEmpty()) Red else Unspecified
+                    )
+                },
+                placeholder = { Text("Nhập số email của bạn") },
                 singleLine = true,
                 modifier = Modifier.width(330.dp)
             )
+
             OutlinedTextField(
-                leadingIcon={
-                    Icon(
-                        Icons.Rounded.AccountCircle,
-                        contentDescription="")
+                leadingIcon = {
+                    Icon(Icons.Rounded.AccountCircle, contentDescription = "")
                 },
                 value = username,
                 onValueChange = { viewModel.onUsernameChange(it) },
-                label = { Text(usernameError.ifEmpty{"Tên người dùng"},color = if (usernameError.isNotEmpty()) Red else Unspecified) },
+                label = {
+                    Text(
+                        usernameError.ifEmpty { "Tên người dùng" },
+                        color = if (usernameError.isNotEmpty()) Red else Unspecified
+                    )
+                },
                 placeholder = { Text("Nhập tên người dùng của bạn") },
                 singleLine = true,
                 modifier = Modifier.width(330.dp)
             )
+
             OutlinedTextField(
-                leadingIcon={
-                    Icon(
-                        Icons.Rounded.Lock,
-                        contentDescription="")
+                leadingIcon = {
+                    Icon(Icons.Rounded.Lock, contentDescription = "")
                 },
                 value = password,
                 onValueChange = { viewModel.onPasswordChange(it) },
-                label = { Text(passwordError.ifEmpty{"Mật khẩu"},color = if (passwordError.isNotEmpty()) Red else Unspecified) },
+                label = {
+                    Text(
+                        passwordError.ifEmpty { "Mật khẩu" },
+                        color = if (passwordError.isNotEmpty()) Red else Unspecified
+                    )
+                },
                 placeholder = { Text("Nhập mật khẩu") },
                 singleLine = true,
                 modifier = Modifier.width(330.dp),
-                visualTransformation=if(passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation =
+                    if (passwordVisible)
+                        VisualTransformation.None
+                    else
+                        PasswordVisualTransformation(),
 
-                trailingIcon={
-                    val image =if (passwordVisible)
-                        painterResource(id=R.drawable.visibility_24px)
-                    else painterResource(id=R.drawable.visibility_off_24px)
+                trailingIcon = {
+                    val image =
+                        if (passwordVisible)
+                            painterResource(id = R.drawable.visibility_24px)
+                        else
+                            painterResource(id = R.drawable.visibility_off_24px)
+
                     Icon(
-                        painter=image,
+                        painter = image,
                         contentDescription = "",
-                        modifier= Modifier
-                            .clickable{
-                            viewModel.togglePasswordVisible()
-                        }
+                        modifier = Modifier
+                            .clickable { viewModel.togglePasswordVisible() }
                             .size(24.dp)
-
                     )
                 }
             )
-            Spacer(modifier=Modifier.height(20.dp))
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             Button(
                 onClick = {
-                    viewModel.onRegisterClick {onRegisterSuccess}
+                    viewModel.onRegisterClick {
+                        onRegisterSuccess()
+                    }
                 },
                 modifier = Modifier
                     .width(250.dp)
@@ -159,8 +169,8 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateLogin: () -> Unit, v
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
-
             }
+
             val annotatedText = buildAnnotatedString {
                 append("Đã có tài khoản? ")
                 withStyle(
@@ -172,25 +182,22 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateLogin: () -> Unit, v
                     append("Đăng nhập")
                 }
             }
+
             Text(
                 text = annotatedText,
                 fontSize = 16.sp,
                 modifier = Modifier.clickable {
-                   onNavigateLogin()
-                })
-            }
+                    onNavigateLogin()
+                }
+            )
         }
-
     }
-
-
-
-
+}
 
 @Preview
 @Composable
-fun rv3(){
-    FitoTheme(){
+fun rv3() {
+    FitoTheme {
         RegisterScreen(
             onRegisterSuccess = {},
             onNavigateLogin = {}
